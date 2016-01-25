@@ -4,6 +4,7 @@
 #include <string.h>
 #include "script.h"
 #include "device.h"
+#include "crc32.h"
 
 void hexdump(char *desc, void *addr, int len)
 {
@@ -52,7 +53,7 @@ static uint8_t hdr[16] = { 'N','E','S',0x1A,0,0,0,0,0,0,0,0,0,0,0,0 };
 static int prgbanksize, chrbanksize;
 static uint8_t prg[0x10000 * 16];
 static uint8_t chr[0x10000 * 16];
-static int prgsize, chrsize, mapper;
+static int prgsize, chrsize, mapper, submapper;
 
 //read cpu data to buffer
 void dump_start(int pbs,int cbs, int map)
@@ -60,6 +61,7 @@ void dump_start(int pbs,int cbs, int map)
 	prgbanksize = pbs;
 	chrbanksize = cbs;
 	mapper = map;
+	submapper = 0;
 	prgsize = 0;
 	chrsize = 0;
 }
@@ -77,6 +79,11 @@ void set_chr_bank_size(int s)
 void set_mapper(int s)
 {
 	mapper = s;
+}
+
+void set_submapper(int s)
+{
+	submapper = s;
 }
 
 void cpu_write(uint32_t addr, uint8_t data)
@@ -152,7 +159,7 @@ void check_mirror()
 	int i;
 
 	i = prgsize / 2;
-	while (memcmp(prg, prg + i, i) != 0) {
+	while (memcmp(prg, prg + i, i) == 0) {
 		printf("prg was mirrored, truncating (%d bytes -> %d bytes).\n", prgsize, i);
 		prgsize -= i;
 		i = prgsize / 2;
@@ -169,6 +176,8 @@ int main(int argc, char *argv[])
 		printf("usage: dumper-cli script.lua output.nes\n");
 		return(1);
 	}
+	crc32_gentab();
+		
 	scriptfn = argv[1];
 	outputfn = argv[2];
 
@@ -202,11 +211,16 @@ int main(int argc, char *argv[])
 	script_dump();
 
 	printf("\n\n");
-	printf("read %d prg bytes\n", prgsize);
-	printf("read %d chr bytes\n", chrsize);
+	printf("read %d prg bytes (crc32 = $%08X)\n", prgsize, crc32(prg, prgsize));
+	if (chrsize) {
+		printf("read %d chr bytes (crc32 = $%08X)\n", chrsize, crc32(chr, chrsize));
+	}
+	else {
+		printf("no chr read\n");
+	}
 
-//	printf("checking for mirrored rom...\n");
-//	check_mirror();
+	printf("checking for mirrored rom...\n");
+	check_mirror();
 
 	printf("writing prg/chr/nes files...\n");
 	save_dump(outputfn);

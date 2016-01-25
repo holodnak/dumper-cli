@@ -150,6 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="crc32.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="hidapi\windows\hid.c" />
     <ClCompile Include="lua-5.3.2\src\lapi.c" />
@@ -189,6 +190,7 @@
     <ClCompile Include="script.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="crc32.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="hidapi\hidapi.h" />
     <ClInclude Include="lua-5.3.2\src\lapi.h" />

@@ -7,6 +7,7 @@
 void set_prg_bank_size(int s);
 void set_chr_bank_size(int s);
 void set_mapper(int s);
+void set_submapper(int s);
 void cpu_write(uint32_t addr, uint8_t data);
 void cpu_read(uint32_t addr, uint32_t len);
 void ppu_read(uint32_t addr, uint32_t len);
@@ -31,6 +32,13 @@ static int l_set_mapper(lua_State *L) {
 	uint32_t d = (uint32_t)luaL_checkinteger(L, 1);
 
 	set_mapper(d);
+	return(0);
+}
+
+static int l_set_submapper(lua_State *L) {
+	uint32_t d = (uint32_t)luaL_checkinteger(L, 1);
+
+	set_submapper(d);
 	return(0);
 }
 
@@ -71,6 +79,9 @@ bool script_init()
 
 	lua_pushcfunction(luastate, l_set_mapper);
 	lua_setglobal(luastate, "set_mapper");
+
+	lua_pushcfunction(luastate, l_set_submapper);
+	lua_setglobal(luastate, "set_submapper");
 
 	lua_pushcfunction(luastate, l_cpu_write);
 	lua_setglobal(luastate, "cpu_write");
